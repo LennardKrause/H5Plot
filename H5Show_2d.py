@@ -101,7 +101,6 @@ def main():
     # add a label to show name, index, x, y and value
     label = pg.TextItem(iname)
     font = pg.QtGui.QFont('Helvetica', 14, weight=100)
-    font.setStyleHint(pg.QtGui.QFont.TypeWriter)
     label.setFont(font)
     img_view.scene.addItem(label)
 
