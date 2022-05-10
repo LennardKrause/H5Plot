@@ -33,13 +33,13 @@ def change_image():
     current_idx = int(round(img_view.timeLine.value(),0))
     # pick only the slice we need
     with h5py.File(h5file, 'r') as h5f:
-        data = h5f['entry/instrument/pilatus/data'][current_idx,:,:]
+        data = h5f[imgloc][current_idx,:,:]
     # update the 2d image data
     img_view.getImageItem().setImage(data, autoHistogramRange=False, autoRange=False, autoLevels=False)
     # force reset the histogram range
     img_view.getHistogramWidget().setHistogramRange(*img_view.getImageItem().getLevels())
     # update the label
-    label.setText(f'{iname} {current_idx}')
+    label.setText(f'{iname}-{current_idx}')
 
 def imageHoverEvent(point):
     # get the index
@@ -51,7 +51,7 @@ def imageHoverEvent(point):
     # get the value from the *2d image* (not img_view.image[x,y])
     v = img_view.getImageItem().image[y,x]
     # update the label
-    label.setText(f'{iname} {current_idx} {x:>4} {y:>4}: {v}')
+    label.setText(f'{iname}-{current_idx} {x:>4}x{y:<4}: {v}')
 
 def main():
     # set globals
@@ -60,11 +60,12 @@ def main():
     #  - to access TextItem (label)
     #  - to access h5 file (h5file)
     #  - to get the h5 name (iname)
-    global img_view, label, h5file, iname
+    global img_view, label, h5file, imgloc, iname
 
     _ARGS = init_parser()
     h5file = _ARGS._FILE
     iname = os.path.splitext(os.path.basename(h5file))[0]
+    imgloc = 'entry/instrument/pilatus/data'
 
     pg.setConfigOptions(imageAxisOrder='row-major', background='k', leftButtonPan=True)
     app = pg.mkQApp()
@@ -96,14 +97,15 @@ def main():
     
     # add a label to show name, index, x, y and value
     label = pg.TextItem(iname)
-    label.setFont(pg.QtGui.QFont('Helvetica', 12, weight=100))
+    font = pg.QtGui.QFont('Helvetica', 14, weight=100)
+    label.setFont(font)
     img_view.scene.addItem(label)
 
     # get number of images from h5 file
     # load first image
     with h5py.File(h5file, 'r') as h5f:
-        inum = h5f['entry/instrument/pilatus/data'].shape[0]
-        data = h5f['entry/instrument/pilatus/data'][0,:,:]
+        inum = h5f[imgloc].shape[0]
+        data = h5f[imgloc][0,:,:]
 
     # initialize ImageView with empty 3d cube
     # first dimension must be the number of images
